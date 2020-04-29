@@ -1,0 +1,3 @@
+C:\Users\devel\StudioProjects\Theorem\Smart AC\Smart AC Device API\SmartACDeviceAPI\obj\Debug\netcoreapp2.1\SmartACDeviceAPI.csprojAssemblyReference.cache
+C:\Users\devel\StudioProjects\Theorem\Smart AC\Smart AC Device API\SmartACDeviceAPI\obj\Debug\netcoreapp2.1\SmartACDeviceAPI.AssemblyInfoInputs.cache
+C:\Users\devel\StudioProjects\Theorem\Smart AC\Smart AC Device API\SmartACDeviceAPI\obj\Debug\netcoreapp2.1\SmartACDeviceAPI.AssemblyInfo.cs

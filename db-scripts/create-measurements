@@ -1,0 +1,15 @@
+CREATE TABLE `smartac-db`.`measurements` (
+  `id` VARCHAR(36) NOT NULL,
+  `serial-number` VARCHAR(45) NULL,
+  `tempurature` INT NULL,
+  `air-humidity` DECIMAL(2) NULL,
+  `carbon-monoxide` DECIMAL(2) NULL,
+  `timestamp` DATETIME NULL,
+  PRIMARY KEY (`id`),
+  INDEX `serial-number-fk_idx` (`serial-number` ASC),
+  CONSTRAINT `serial-number-fk`
+    FOREIGN KEY (`serial-number`)
+    REFERENCES `smartac-db`.`devices` (`serial-number`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+COMMENT = 'Meassurements taken from sensors of the device';

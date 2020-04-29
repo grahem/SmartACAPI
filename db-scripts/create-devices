@@ -1,0 +1,8 @@
+CREATE TABLE `smartac-db`.`devices` (
+  `serial-number` VARCHAR(36) NOT NULL,
+  `registration-date` DATETIME NULL,
+  `firmware-version` VARCHAR(45) NULL,
+  `health-status` VARCHAR(45) NULL,
+  `active-alert` TINYINT NULL,
+  PRIMARY KEY (`serial-number`))
+COMMENT = 'contains device information';
