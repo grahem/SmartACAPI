@@ -1,2 +1,7 @@
-﻿bin\
-obj\
+﻿.dockerignore
+.git
+.gitignore
+.vs
+.vscode/*
+bin/
+obj/

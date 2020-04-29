@@ -1,0 +1,13 @@
+{
+    "AWSEBDockerrunVersion": "1",
+    "Image": {
+        "Name": "009952781627.dkr.ecr.us-west-1.amazonaws.com/smartacdeviceapi:[VersionNumber]",
+        "Update": "true"
+    },
+    "Ports": [
+        {
+            "HostPort": "80",
+            "ContainerPort": "80"
+        }
+    ]
+}
