@@ -14,7 +14,7 @@ The API is responsible for the following functions:
 # Using the API
 
 ##  Devices
-When a device comes online, it POSTs a request to **/devices**. To register a device, it must provide a secret to authenticate.
+When a device comes online, it POSTs a request to **/devices**. To register a device, the device does not need to be authenticated.
 
 Through authorization, the device can publish sensor measurements. To authorize a device using a **JWT Token**, the device makes a POST to **/authenticate**.
 
@@ -32,6 +32,8 @@ Users can get a devices measurements via a GET to **devices/{SerialNumber}/measu
 Finally, users can filter sensor data by date ranges using the query parameters **from** and **to** in ISO 8601 format.
 
 # API Documentation
+
+The API is service via: http://smartacdeviceapi-dev.us-west-1.elasticbeanstalk.com
 
 ## POST /authenticate
 
