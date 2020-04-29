@@ -148,6 +148,10 @@ namespace SmartACDeviceAPI.Controllers
             //TODO: optomize for batch writes. latest DynamoDB sdk removed it?
             foreach (var measurment in measurements)
             {
+                if (String.IsNullOrEmpty(measurment.Id) || String.IsNullOrEmpty(measurment.RecordedTime))
+                {
+                    return BadRequest();
+                }
                 //if carbom monoxide is above 9PPM, trigger an alarm
                 if (measurment.CarbonMonoxide > 9)
                 {

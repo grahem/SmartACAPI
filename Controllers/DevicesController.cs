@@ -82,7 +82,13 @@ namespace SmartACDeviceAPI.Controllers
             await _context.SaveAsync<Device>(device, default(System.Threading.CancellationToken));
             Device result = await _context.LoadAsync<Device>(device.SerialNumber, device.Status, default(System.Threading.CancellationToken));
 
-            return Ok(result);
+            //create a service object to hide the secret
+            var serviceResponse = new DeviceServiceResponse();
+            serviceResponse.SerialNumber = result.SerialNumber;
+            serviceResponse.FirmwareVersion = result.FirmwareVersion;
+            serviceResponse.InAlarm = result.InAlarm;
+            serviceResponse.Status = result.Status;
+            return Ok(serviceResponse);
         }
         
     }
