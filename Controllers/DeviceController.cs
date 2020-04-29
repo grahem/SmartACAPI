@@ -1,20 +1,16 @@
-﻿using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.DataModel;
-using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.DynamoDBv2.Model;
+﻿using Amazon.DynamoDBv2.DataModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MySqlX.XDevAPI.Common;
 using SmartACDeviceAPI.Models;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace SmartACDeviceAPI.Controllers
 {
 
+    //This class is used exclusively to get Devices. Posting is done in DevicesManager.
+    //TODO: Determine why .NET Core routing fails when combining the POST and GET in the same file.
+    //For some reason, it does not like the variable in the URL to be listed on the method route for POST.
     [Authorize]
     [ApiController]
     [Route("devices/{serialNumber}")]
@@ -40,6 +36,7 @@ namespace SmartACDeviceAPI.Controllers
                 return BadRequest();
             }
 
+            //Get the device from DynamoDB
             var query = _context.QueryAsync<Device>(serialNumber);
             var resultList = query.GetRemainingAsync().Result;
             if (resultList.Count == 0)
@@ -49,6 +46,7 @@ namespace SmartACDeviceAPI.Controllers
             else
             {
                 var device = resultList.First();
+
                 //create a service object to hide the secret
                 var serviceResponse = new DeviceServiceResponse();
                 serviceResponse.SerialNumber = device.SerialNumber;
@@ -57,8 +55,6 @@ namespace SmartACDeviceAPI.Controllers
                 serviceResponse.Status = device.Status;
                 return Ok(serviceResponse);
             }
-
         }
-
     }
 }

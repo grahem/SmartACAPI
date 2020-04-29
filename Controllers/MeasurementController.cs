@@ -1,26 +1,25 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
-using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MySqlX.XDevAPI.Common;
 using SmartACDeviceAPI.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 
 namespace SmartACDeviceAPI.Controllers
 {
 
+    //This class handles searching and recording device measurements.
     [ApiController]
     [Route("devices/{deviceId}/measurements/{from?}/{to?}")]
     public class MeasurementController : ControllerBase
     {
+        //This class requires both a IDynamoDBContext and a AmazonDynamoDBClient
+        //since it requires working at a lower leve of the DynamoDB SDK when getting measurements
         private readonly IDynamoDBContext _db;
         private readonly AmazonDynamoDBClient _dbClient;
         private readonly ILogger<MeasurementController> logger;
@@ -29,8 +28,7 @@ namespace SmartACDeviceAPI.Controllers
         {
             this._db = db;
             this._dbClient =  new AmazonDynamoDBClient();
-            this.logger = logger;
-            
+            this.logger = logger;   
         }
 
         [Authorize]
@@ -42,6 +40,9 @@ namespace SmartACDeviceAPI.Controllers
             [FromQuery(Name = "to")] string to)
         {
 
+            logger.LogInformation(String.Format("Getting Measurements for SerialNumber: {0}", deviceId));
+
+            //Validate search filter query params
             //TODO: allow for open ended searched (from null or to null)
             bool includeTimeRange = false;
             if (!String.IsNullOrEmpty(from) && String.IsNullOrEmpty(to))
@@ -55,6 +56,7 @@ namespace SmartACDeviceAPI.Controllers
                 includeTimeRange = true;
             }
 
+            //Build DynamoDB qury expression. Logic for including search filter
             string keyConditionExpression = "DeviceSerialNumber = :v_DeviceSerialNumber";
             var expressionAttributeValues = new Dictionary<string, AttributeValue> {
                     { ":v_DeviceSerialNumber", new AttributeValue { S = deviceId }  } 
@@ -65,7 +67,6 @@ namespace SmartACDeviceAPI.Controllers
                 expressionAttributeValues.Add(":v_start", new AttributeValue { S = from });
                 expressionAttributeValues.Add(":v_end", new AttributeValue { S = to });
             }
-
 
             var request = new QueryRequest
             {
@@ -79,6 +80,7 @@ namespace SmartACDeviceAPI.Controllers
             var task = _dbClient.QueryAsync(request);
             task.Wait();
 
+            //Populate a list of measurements from the DynamoDB query response
             List<Measurement> measurements = new List<Measurement>();
             foreach (Dictionary<string, AttributeValue> item in task.Result.Items)
             {
@@ -126,12 +128,15 @@ namespace SmartACDeviceAPI.Controllers
                 measurements.Add(measurement);
             }
 
+            logger.LogInformation(String.Format("Found {0} Measurements for SerialNumber: {1}", measurements.Count, deviceId));
+
             return Ok(measurements);
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromRoute(Name = "deviceId")] string deviceId, List<Measurement> measurements)
         {
+            logger.LogInformation(String.Format("Recording Measurements for SerialNumber: {0}", deviceId));
 
             //check if maintanence mode
             var sys = _db.LoadAsync<SystemConfig>("InMaintenance").Result;
@@ -173,7 +178,7 @@ namespace SmartACDeviceAPI.Controllers
                     }
                 }
 
-                //force the serial number
+                //apply the serial number from the device in the URI
                 measurment.DeviceSerialNumber = deviceId;
                 
                 try
@@ -185,7 +190,6 @@ namespace SmartACDeviceAPI.Controllers
                     logger.LogError(ex, "Error occured saving measurements");
                     return new StatusCodeResult(503);
                 }
-
             }
             
             return Ok();

@@ -6,10 +6,10 @@ using Microsoft.Extensions.Logging;
 using SmartACDeviceAPI.Models;
 using SmartACDeviceAPI.Security;
 using System;
-using System.Linq;
 
 namespace SmartACDeviceAPI.Controllers
 {
+    //This class is used to authenticate a web user given a SeiralNumber and a Secret via JWT auth.
     [Authorize]
     [ApiController]
     [Route("authenticateuser")]

@@ -10,6 +10,7 @@ using System.Linq;
 
 namespace SmartACDeviceAPI.Controllers
 {
+    //This class is used to authenticate a device given a SeiralNumber and a Secret via JWT auth.
     [Authorize]
     [ApiController]
     [Route("authenticate")]
@@ -37,6 +38,7 @@ namespace SmartACDeviceAPI.Controllers
                 return BadRequest();
             }
 
+            //Ensure we have the supplied device in DynamoDB
             var query = _context.QueryAsync<Device>(authorizationModel.SerialNumber);
             var resultList = query.GetRemainingAsync().Result;
             if (resultList.Count == 0)
@@ -45,9 +47,9 @@ namespace SmartACDeviceAPI.Controllers
             }
             else
             {
+                //Check that the supplied secret matches the database.
                 if (String.Equals(authorizationModel.Secret, resultList.First().Secret))
                 {
-
                     var tokenString = JWTHelper.GenerateJWTToken(_config);
                     return Ok(tokenString);
                 }
@@ -58,9 +60,5 @@ namespace SmartACDeviceAPI.Controllers
                 }
             }            
         }
-
-        
-
-       
     }
 }

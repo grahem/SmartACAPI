@@ -7,6 +7,8 @@ using System.Text;
 
 namespace SmartACDeviceAPI.Security
 {
+    //We use JWT token generation in both Device and User auth.
+    //This helper class is used to reduce dupliacte code.
     public class JWTHelper
     {
         public static string GenerateJWTToken(IConfiguration config)
