@@ -1,0 +1,36 @@
+{
+    "Table": {
+        "AttributeDefinitions": [
+            {
+                "AttributeName": "SerialNumber",
+                "AttributeType": "S"
+            },
+            {
+                "AttributeName": "Status",
+                "AttributeType": "S"
+            }
+        ],
+        "TableName": "Devices",
+        "KeySchema": [
+            {
+                "AttributeName": "SerialNumber",
+                "KeyType": "HASH"
+            },
+            {
+                "AttributeName": "Status",
+                "KeyType": "RANGE"
+            }
+        ],
+        "TableStatus": "ACTIVE",
+        "CreationDateTime": 1588045683.548,
+        "ProvisionedThroughput": {
+            "NumberOfDecreasesToday": 0,
+            "ReadCapacityUnits": 5,
+            "WriteCapacityUnits": 5
+        },
+        "TableSizeBytes": 2085,
+        "ItemCount": 17,
+        "TableArn": "arn:aws:dynamodb:us-west-1:009952781627:table/Devices",
+        "TableId": "c901fc55-134d-434b-94ab-353aa38d310d"
+    }
+}

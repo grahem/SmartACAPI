@@ -1,0 +1,68 @@
+{
+    "Table": {
+        "AttributeDefinitions": [
+            {
+                "AttributeName": "DeviceSerialNumber",
+                "AttributeType": "S"
+            },
+            {
+                "AttributeName": "Id",
+                "AttributeType": "S"
+            },
+            {
+                "AttributeName": "RecordedTime",
+                "AttributeType": "S"
+            }
+        ],
+        "TableName": "Measurements",
+        "KeySchema": [
+            {
+                "AttributeName": "Id",
+                "KeyType": "HASH"
+            },
+            {
+                "AttributeName": "DeviceSerialNumber",
+                "KeyType": "RANGE"
+            }
+        ],
+        "TableStatus": "ACTIVE",
+        "CreationDateTime": 1588046575.648,
+        "ProvisionedThroughput": {
+            "LastIncreaseDateTime": 1588173813.863,
+            "NumberOfDecreasesToday": 0,
+            "ReadCapacityUnits": 500,
+            "WriteCapacityUnits": 100
+        },
+        "TableSizeBytes": 514527,
+        "ItemCount": 3549,
+        "TableArn": "arn:aws:dynamodb:us-west-1:009952781627:table/Measurements",
+        "TableId": "21076492-aa78-46d0-b7da-9c1c0fe15642",
+        "GlobalSecondaryIndexes": [
+            {
+                "IndexName": "DeviceSerialNumber-RecordedTime-index",
+                "KeySchema": [
+                    {
+                        "AttributeName": "DeviceSerialNumber",
+                        "KeyType": "HASH"
+                    },
+                    {
+                        "AttributeName": "RecordedTime",
+                        "KeyType": "RANGE"
+                    }
+                ],
+                "Projection": {
+                    "ProjectionType": "ALL"
+                },
+                "IndexStatus": "ACTIVE",
+                "ProvisionedThroughput": {
+                    "NumberOfDecreasesToday": 0,
+                    "ReadCapacityUnits": 5,
+                    "WriteCapacityUnits": 5
+                },
+                "IndexSizeBytes": 514527,
+                "ItemCount": 3549,
+                "IndexArn": "arn:aws:dynamodb:us-west-1:009952781627:table/Measurements/index/DeviceSerialNumber-RecordedTime-index"
+            }
+        ]
+    }
+}
