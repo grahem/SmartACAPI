@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SmartACDeviceAPI.Models;
+using SmartACDeviceAPI.Services;
+using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace SmartACDeviceAPI.Controllers
@@ -17,44 +20,48 @@ namespace SmartACDeviceAPI.Controllers
     public class DeviceController : ControllerBase
     {
         private readonly IDynamoDBContext _context;
-        private readonly ILogger<DeviceController> logger;
+        private readonly DeviceService _deviceSerive;
+        private readonly Stopwatch _stopwatch;
+        private readonly ILogger<DeviceController> _logger;
 
-        public DeviceController(IDynamoDBContext context, ILogger<DeviceController> logger)
+        public DeviceController(IDynamoDBContext context,
+                DeviceService deviceService,
+                ILogger<DeviceController> logger,
+                Stopwatch stopwatch)
         {
             _context = context;
-            this.logger = logger;
+            _deviceSerive = deviceService;
+            _stopwatch = stopwatch;
+            _logger = logger;
         }
 
         [Authorize]
         [HttpGet]
         ///Gets a Device with the given Id.
-        public IActionResult Get([FromRoute]string serialNumber)
+        public IActionResult Get([FromRoute] string serialNumber)
         {
 
             if (string.IsNullOrEmpty(serialNumber))
-            {
                 return BadRequest();
+
+            _stopwatch.Start();
+
+            try
+            {
+                var serviceResponse = _deviceSerive.GetDeviceBySerialNumber(serialNumber);
+                _stopwatch.Stop();
+                _logger.LogInformation(string.Format("Got Device for {0} in {1} ms", serialNumber, _stopwatch.ElapsedMilliseconds));
+
+                if (serviceResponse.Result == null)
+                    return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, string.Format("Device lookup failed for serial number: {0}", serialNumber));
+                return new StatusCodeResult(503);
             }
 
-            //Get the device from DynamoDB
-            var query = _context.QueryAsync<Device>(serialNumber);
-            var resultList = query.GetRemainingAsync().Result;
-            if (resultList.Count == 0)
-            {
-                return NotFound();
-            }
-            else
-            {
-                var device = resultList.First();
-
-                //create a service object to hide the secret
-                var serviceResponse = new DeviceServiceResponse();
-                serviceResponse.SerialNumber = device.SerialNumber;
-                serviceResponse.FirmwareVersion = device.FirmwareVersion;
-                serviceResponse.InAlarm = device.InAlarm;
-                serviceResponse.Status = device.Status;
-                return Ok(serviceResponse);
-            }
+            return Ok();
         }
     }
 }
