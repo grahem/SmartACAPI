@@ -1,14 +1,18 @@
-﻿using Amazon.DynamoDBv2.DataModel;
+﻿using System.ComponentModel.DataAnnotations;
+using Amazon.DynamoDBv2.DataModel;
 
 namespace SmartACDeviceAPI.Models
 {
-    [DynamoDBTable("User")]
+    [DynamoDBTable("Users")]
     public class User
     {
-        [DynamoDBHashKey]
+        
+        [Required]
+        [DynamoDBHashKey("username")]
         public string UserName { get; set;  }
 
-        [DynamoDBProperty]
+        [Required]
+        [DynamoDBProperty("password")]
         public string Password { get; set; }
     }
 }
