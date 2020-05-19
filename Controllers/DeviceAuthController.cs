@@ -35,7 +35,7 @@ namespace SmartACDeviceAPI.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Authenticate([FromBody] DeviceAuthorizationModel authorizationModel)
+        public async Task<IActionResult> Authorize([FromBody] DeviceAuthenticationModel authorizationModel)
         {
             _stopwatch.Start();
             try

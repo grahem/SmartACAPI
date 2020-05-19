@@ -13,11 +13,9 @@ namespace SmartACDeviceAPI.Services
 {
     public class DeviceAuthZService
     {
-
         private readonly IDynamoDBContext _dBContext;
         private readonly IOptionsMonitor<AuthZOptions> _options;
         private readonly ILogger<DeviceAuthZService> _logger;
-
 
         public DeviceAuthZService(IDynamoDBContext dBContext, IOptionsMonitor<AuthZOptions> options, ILogger<DeviceAuthZService> logger)
         {
@@ -29,15 +27,15 @@ namespace SmartACDeviceAPI.Services
         public async Task<string> Authorize(string serialNumber, string secret)
         {
             //Ensure we have the supplied device in DynamoDB
-            var query = await _dBContext.QueryAsync<Device>(serialNumber).GetRemainingAsync();
-            if (query.Count == 0)
+            var device = await _dBContext.LoadAsync<Device>(serialNumber);
+            if (device == null)
             {
                 return null;
             }
             else
             {
                 //Check that the supplied secret matches the database.
-                if (String.Equals(query.First().Secret, secret))
+                if (String.Equals(device.Secret, secret))
                 {
                     var tokenString = JWTHelper.GenerateJWTToken(_options);
                     return tokenString;

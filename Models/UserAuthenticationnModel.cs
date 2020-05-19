@@ -1,6 +1,6 @@
 ﻿namespace SmartACDeviceAPI.Models
 {
-    public class UserAuthorizationModel
+    public class UserAuthenticationModel
     { 
         public string Username { get; set; }
 
