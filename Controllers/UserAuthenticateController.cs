@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using SmartACAPI.Options;
 using SmartACDeviceAPI.Models;
 using SmartACDeviceAPI.Security;
 using System;
@@ -12,17 +14,17 @@ namespace SmartACDeviceAPI.Controllers
     //This class is used to authenticate a web user given a SeiralNumber and a Secret via JWT auth.
     [Authorize]
     [ApiController]
-    [Route("authenticateuser")]
+    [Route("authenticate-user")]
     public class UserAuthenticateController : ControllerBase
     {
 
-        private readonly IConfiguration _config;
+        private readonly IOptionsMonitor<AuthZOptions> _options;
         private readonly IDynamoDBContext _context;
         private readonly ILogger<DevicesController> logger;
 
-        public UserAuthenticateController(IConfiguration config, IDynamoDBContext context, ILogger<DevicesController> logger)
+        public UserAuthenticateController(IOptionsMonitor<AuthZOptions> options, IDynamoDBContext context, ILogger<DevicesController> logger)
         {
-            _config = config;
+            _options = options;
             _context = context;
             this.logger = logger;
         }
@@ -50,7 +52,7 @@ namespace SmartACDeviceAPI.Controllers
                 if (String.Equals(authorizationModel.Password, user.Password))
                 {
                     logger.LogInformation(string.Format("Authorized User: {0}", authorizationModel.Username));
-                    var tokenString = JWTHelper.GenerateJWTToken(_config);
+                    var tokenString = JWTHelper.GenerateJWTToken(_options);
                     
                     return Ok(tokenString);
                 }
