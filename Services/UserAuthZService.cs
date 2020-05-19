@@ -1,6 +1,8 @@
 using System;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2.DataModel;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SmartACAPI.Options;
@@ -39,8 +41,7 @@ namespace SmartACDeviceAPI.Services
             }
             else
             {
-                //TODO: encrypt password at rest
-                if (String.Equals(password, user.Password))
+                if (String.Equals(HashPassword(password), user.Password))
                 {
                     var tokenString = JWTHelper.GenerateJWTToken(_options);
 
@@ -52,6 +53,18 @@ namespace SmartACDeviceAPI.Services
                     throw new AuthZException();
                 }
             }
+        }
+
+        private string HashPassword(string clearTextPassword)
+        {            
+            string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+            password: clearTextPassword,
+            salt: new byte[128 / 8],
+            prf: KeyDerivationPrf.HMACSHA1,
+            iterationCount: 10000,
+            numBytesRequested: 256 / 8));
+
+            return hashed;
         }
     }
 
