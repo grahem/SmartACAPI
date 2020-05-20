@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
-using SmartACAPI.Options;
+using SmartACDeviceAPI.Options;
 using SmartACDeviceAPI.Services;
 using System.Diagnostics;
 using System.Text;
@@ -55,7 +55,8 @@ namespace SmartACDeviceAPI
             //aws
             services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
             services.AddAWSService<IAmazonDynamoDB>();
-            services.AddTransient<IDynamoDBContext, DynamoDBContext>();
+            services.AddScoped<IDynamoDBContext, DynamoDBContext>();
+            services.AddScoped<IAmazonDynamoDB>();
             
             
             //services and helpers

@@ -13,7 +13,6 @@ namespace SmartACDeviceAPI.Models
 
         public string FirmwareVersion { get; set; }
 
-
         public bool InAlarm { get; set; }
 
     }

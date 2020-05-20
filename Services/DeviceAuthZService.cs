@@ -2,7 +2,7 @@ using SmartACDeviceAPI.Security;
 using Amazon.DynamoDBv2.DataModel;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
-using SmartACAPI.Options;
+using SmartACDeviceAPI.Options;
 using SmartACDeviceAPI.Models;
 using System.Linq;
 using System.Threading.Tasks;

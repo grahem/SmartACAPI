@@ -5,7 +5,7 @@ using Amazon.DynamoDBv2.DataModel;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SmartACAPI.Options;
+using SmartACDeviceAPI.Options;
 using SmartACDeviceAPI.Exceptions;
 using SmartACDeviceAPI.Models;
 using SmartACDeviceAPI.Security;

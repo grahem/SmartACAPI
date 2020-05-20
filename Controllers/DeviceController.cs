@@ -20,15 +20,11 @@ namespace SmartACDeviceAPI.Controllers
     public class DeviceController : ControllerBase
     {
         private readonly DeviceService _deviceSerive;
-        private readonly Stopwatch _stopwatch;
         private readonly ILogger<DeviceController> _logger;
 
-        public DeviceController(DeviceService deviceService,
-                ILogger<DeviceController> logger,
-                Stopwatch stopwatch)
+        public DeviceController(DeviceService deviceService, ILogger<DeviceController> logger)
         {
             _deviceSerive = deviceService;
-            _stopwatch = stopwatch;
             _logger = logger;
         }
 
@@ -37,18 +33,20 @@ namespace SmartACDeviceAPI.Controllers
         ///Gets a Device with the given Id.
         public IActionResult Get([FromRoute] string serialNumber)
         {
-            _stopwatch.Start();
+
+            if (string.IsNullOrEmpty(serialNumber))
+                return BadRequest();
+
+            var watch = Stopwatch.StartNew();
 
             try
             {
-                _logger.LogDebug(String.Format("Getting device for serial number {0}", serialNumber));
                 var serviceResponse = _deviceSerive.GetDeviceBySerialNumber(serialNumber);
+                watch.Stop();
+                _logger.LogInformation(string.Format("Got Device for {0} in {1} ms", serialNumber, watch.ElapsedMilliseconds));
 
-                _stopwatch.Stop();
-                _logger.LogDebug(string.Format("Got Device for serial number {0} in {1} ms", serialNumber, _stopwatch.ElapsedMilliseconds));
-
-                if (serviceResponse.Result != null)
-                    return Ok(serviceResponse.Result);
+                if (serviceResponse.Result == null)
+                    return BadRequest();
             }
             catch (Exception ex)
             {
@@ -56,8 +54,7 @@ namespace SmartACDeviceAPI.Controllers
                 return new StatusCodeResult(503);
             }
 
-            _logger.LogDebug(string.Format("Could not find device for serial number: {0}", serialNumber));
-            return BadRequest();
+            return Ok();
         }
     }
 }

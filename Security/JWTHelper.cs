@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using SmartACAPI.Options;
+using SmartACDeviceAPI.Options;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;

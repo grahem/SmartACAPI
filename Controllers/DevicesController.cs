@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SmartACDeviceAPI.Models;
+using SmartACDeviceAPI.Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,88 +18,61 @@ namespace SmartACDeviceAPI.Controllers
     [Route("devices")]
     public class DevicesController : ControllerBase
     {
-        private readonly IDynamoDBContext _context;
-        private readonly ILogger<DevicesController> logger;
+        private readonly DeviceService _deviceService;
+        private readonly ILogger<DevicesController> _logger;
 
-        public DevicesController(IDynamoDBContext context, ILogger<DevicesController> logger)
+        public DevicesController(DeviceService deviceService, ILogger<DevicesController> logger)
         {
-            _context = context;
-            this.logger = logger;
+            _deviceService = deviceService;
+            _logger = logger;
         }
 
-        [Authorize]
+        [Authorize()]
         [HttpGet]
-        ///Gets a Device with the given Id.
-        public IActionResult Get()
+        ///Gets a list of devices.
+        public async Task<IActionResult> Get([FromQuery] short? count)
         {
-            logger.LogInformation(String.Format("Getting a list of devices"));
-            var query = _context.ScanAsync<Device>(null);
-            var devices = query.GetRemainingAsync().Result;
-            List<Device> devicesResult = new List<Device>();
+            var stopWatch = Stopwatch.StartNew();
+            var limit = count ?? 200;
 
-            //First return devices that are not healthy by registration date. 
-            //This sorts unhealthy devices at the top of the list
-            var healthyDevices = devices
-                .Where(device => device.Status != "healthy")
-                .OrderBy(device => device.RegistrationDate)
-                .ToList();
-            devicesResult.AddRange(healthyDevices);
-
-            logger.LogInformation(String.Format("Found {0} Unhealthy devices", devicesResult.Count));
-
-            //Only return at most 50 records.
-            //If there are less than 50 unhealthy devices, 
-            //then pull the remainder of healthy ordered devices by registration date.
-            if (healthyDevices.Count < 50)
-            {
-                var extraDevices = devices
-                    .Where(device => device.Status == "healthy")
-                    .OrderBy(device => device.RegistrationDate)
-                    .Take(50 - devices.Count)
-                    .ToList();
-
-                devicesResult.AddRange(extraDevices);
+            _logger.LogDebug(String.Format("Getting a list of {0} devices", limit));
+            
+            try {
+            var devices = await _deviceService.GetDevices(limit);
+            stopWatch.Stop();
+            if (devices != null)
+                _logger.LogInformation(String.Format("Got {0} devices in {1}ms", devices.Count, stopWatch.ElapsedMilliseconds));
+            
+            return Ok(devices);
+            } catch (Exception ex) {
+                _logger.LogError(ex, "Error getting devices");
+                return new StatusCodeResult(503);
             }
-
-            //If we have no devices, return not found
-            //TODO: consider returning an OK here. It might be ok that we don't have any devices registered.
-            if (devicesResult.Count == 0) {
-                return NotFound();
-            }
-            else {
-                return Ok(devicesResult);
-            }
+            
         }
 
         [AllowAnonymous]
         [HttpPost]
         ///Takes a <cref="SmartACDeviceAPI.Device">device</cref> as an Http POST, and saves to DynamoDB.
         ///If missing properties are detected, a 400 Bad Request is returned. Otherwise, a 200 OK is returned with the saved device.
-        ///
         public async Task<IActionResult> Post(Device device)
         {
             
-            //Validate device properties
-            if (String.IsNullOrEmpty(device.SerialNumber) 
-                || String.IsNullOrEmpty(device.Status)
-                || String.IsNullOrEmpty(device.FirmwareVersion)
-                || String.IsNullOrEmpty(device.Secret))
-            {
-                return BadRequest("One or more properties is missing");
+            var stopWatch = Stopwatch.StartNew();
+            
+            _logger.LogDebug(String.Format("Registering device serial number {0}", device.SerialNumber));
+            
+            try {
+            var deviceResponse = await _deviceService.RegisterDevice(device);
+            stopWatch.Stop();
+            if (deviceResponse != null)
+                _logger.LogInformation(String.Format("Registered device in {0}ms", stopWatch.ElapsedMilliseconds));
+            
+            return Ok(deviceResponse);
+            } catch (Exception ex) {
+                _logger.LogError(ex, "Error registering devices");
+                return new StatusCodeResult(503);
             }
-
-            logger.LogInformation(String.Format("Registering a device: SerialNumber {0}", device.SerialNumber));
-
-            await _context.SaveAsync<Device>(device, default(System.Threading.CancellationToken));
-            Device result = await _context.LoadAsync<Device>(device.SerialNumber, device.Status, default(System.Threading.CancellationToken));
-
-            //create a service object to hide the secret
-            var serviceResponse = new DeviceServiceResponse();
-            serviceResponse.SerialNumber = result.SerialNumber;
-            serviceResponse.FirmwareVersion = result.FirmwareVersion;
-            serviceResponse.InAlarm = result.InAlarm;
-            serviceResponse.Status = result.Status;
-            return Ok(serviceResponse);
         }
         
     }

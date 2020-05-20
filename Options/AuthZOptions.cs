@@ -1,4 +1,4 @@
-namespace SmartACAPI.Options
+namespace SmartACDeviceAPI.Options
 {
     public class AuthZOptions {
 

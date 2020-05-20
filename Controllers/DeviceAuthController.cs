@@ -21,31 +21,27 @@ namespace SmartACDeviceAPI.Controllers
     {
         private readonly DeviceAuthZService _deviceAuthZService;
         private readonly ILogger<DeviceAuthZController> _logger;
-        private readonly Stopwatch _stopwatch;
 
-        public DeviceAuthZController(
-            DeviceAuthZService deviceAuthZService,
-            ILogger<DeviceAuthZController> logger,
-            Stopwatch stopwatch)
+        public DeviceAuthZController(DeviceAuthZService deviceAuthZService, ILogger<DeviceAuthZController> logger)
         {
             _deviceAuthZService = deviceAuthZService;
             _logger = logger;
-            _stopwatch = stopwatch;
         }
 
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Authorize([FromBody] DeviceAuthenticationModel authorizationModel)
         {
-            _stopwatch.Start();
+            var watch = Stopwatch.StartNew();
+            
             try
             {
                 _logger.LogDebug(String.Format("Authenticating serial number {0}", authorizationModel.SerialNumber));
                 var token = await _deviceAuthZService.Authorize(authorizationModel.SerialNumber, authorizationModel.Secret);
                 if (token != null)
                 {
-                    _stopwatch.Stop();
-                    _logger.LogDebug(String.Format("Authorized serial number {0} in {1}ms", authorizationModel.SerialNumber, _stopwatch.ElapsedMilliseconds));
+                    watch.Stop();
+                    _logger.LogDebug(String.Format("Authorized serial number {0} in {1}ms", authorizationModel.SerialNumber, watch.ElapsedMilliseconds));
                     return Ok(token);
                 }
             }
