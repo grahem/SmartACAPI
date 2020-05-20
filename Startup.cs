@@ -56,14 +56,13 @@ namespace SmartACDeviceAPI
             services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
             services.AddAWSService<IAmazonDynamoDB>();
             services.AddScoped<IDynamoDBContext, DynamoDBContext>();
-            services.AddScoped<IAmazonDynamoDB>();
+            services.AddScoped<IAmazonDynamoDB, AmazonDynamoDBClient>();
             
             
             //services and helpers
             services.AddTransient<DeviceService>();
             services.AddTransient<DeviceAuthZService>();
             services.AddTransient<UserAuthZService>();
-            services.AddTransient<Stopwatch>();
 
             //controllers
             services.AddControllers();
