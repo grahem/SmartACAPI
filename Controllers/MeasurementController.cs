@@ -4,10 +4,12 @@ using Amazon.DynamoDBv2.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using SmartACDeviceAPI.Maps;
 using SmartACDeviceAPI.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace SmartACDeviceAPI.Controllers
@@ -33,27 +35,19 @@ namespace SmartACDeviceAPI.Controllers
 
         [Authorize]
         [HttpGet]
-        ///Gets last 500 measurements.
+        ///Gets at most last 200 measurements or measurements defined by queryParams from and to (ISO 8601)
         public IActionResult Get(
             [FromRoute(Name = "deviceId")] string deviceId,
-            [FromQuery(Name = "from")] string from,
-            [FromQuery(Name = "to")] string to)
+            [FromQuery] MeasurementQueryModel queryModel)
         {
 
             logger.LogInformation(String.Format("Getting Measurements for SerialNumber: {0}", deviceId));
 
-            //Validate search filter query params
-            //TODO: allow for open ended searched (from null or to null)
             bool includeTimeRange = false;
-            if (!String.IsNullOrEmpty(from) && String.IsNullOrEmpty(to))
-            {
-                return BadRequest("from parameter supplied. Must includefrom");
-            } else if (!String.IsNullOrEmpty(to) && String.IsNullOrEmpty(from))
-            {
-                return BadRequest("to parameter supplied. Must include from");
-            } else if (!String.IsNullOrEmpty(from))
+            if (!String.IsNullOrEmpty(queryModel.FromDate))
             {
                 includeTimeRange = true;
+                Console.WriteLine("Time range will be applied");
             }
 
             //Build DynamoDB qury expression. Logic for including search filter
@@ -64,8 +58,8 @@ namespace SmartACDeviceAPI.Controllers
             if (includeTimeRange)
             {
                 keyConditionExpression += " and RecordedTime between :v_start and :v_end";
-                expressionAttributeValues.Add(":v_start", new AttributeValue { S = from });
-                expressionAttributeValues.Add(":v_end", new AttributeValue { S = to });
+                expressionAttributeValues.Add(":v_start", new AttributeValue { S = queryModel.FromDate });
+                expressionAttributeValues.Add(":v_end", new AttributeValue { S = queryModel.ToDate });
             }
 
             var request = new QueryRequest
@@ -76,57 +70,14 @@ namespace SmartACDeviceAPI.Controllers
                 KeyConditionExpression = keyConditionExpression, 
                 ExpressionAttributeValues = expressionAttributeValues
             };
+            if (!includeTimeRange) { request.Limit = 200;}
 
             var task = _dbClient.QueryAsync(request);
             task.Wait();
 
             //Populate a list of measurements from the DynamoDB query response
-            List<Measurement> measurements = new List<Measurement>();
-            foreach (Dictionary<string, AttributeValue> item in task.Result.Items)
-            {
-                Console.WriteLine("Item:");
-                Measurement measurement = new Measurement();
-                foreach (var keyValuePair in item)
-                {
-                    switch (keyValuePair.Key)
-                    {
-                        case "Id":
-                            measurement.Id = keyValuePair.Value.S;
-                            break;
-                        case "DeviceSerialNumber":
-                            measurement.DeviceSerialNumber = keyValuePair.Value.S;
-                            break;
-                        case "AirHumidity":
-                            double air = 0;
-                            if (!String.IsNullOrEmpty(keyValuePair.Value.N))
-                            {
-                                double.TryParse(keyValuePair.Value.N, out air);
-                            }
-                            measurement.AirHumidity = air;
-                            break;
-                        case "CarbonMonoxide":
-                            double carbon = 0;
-                            if (!String.IsNullOrEmpty(keyValuePair.Value.N))
-                            {
-                                double.TryParse(keyValuePair.Value.N, out carbon);
-                            }
-                            measurement.CarbonMonoxide = carbon;
-                            break;
-                        case "Temperature":
-                            double temp = 0;
-                            if (!String.IsNullOrEmpty(keyValuePair.Value.N))
-                            {
-                                double.TryParse(keyValuePair.Value.N, out temp);
-                            }
-                            measurement.Temperature = temp;
-                            break;
-                        case "RecordedTime":
-                            measurement.RecordedTime = keyValuePair.Value.S;
-                            break;
-                    }
-                }
-                measurements.Add(measurement);
-            }
+            List<Measurement> measurements = DynamoMeasurementMapper.Map(task.Result.Items);
+            
 
             logger.LogInformation(String.Format("Found {0} Measurements for SerialNumber: {1}", measurements.Count, deviceId));
 
