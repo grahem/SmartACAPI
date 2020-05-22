@@ -11,6 +11,7 @@ using SmartACDeviceAPI.Options;
 using SmartACDeviceAPI.Services;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.OpenApi.Models;
 
 namespace SmartACDeviceAPI
 {
@@ -57,12 +58,17 @@ namespace SmartACDeviceAPI
             services.AddAWSService<IAmazonDynamoDB>();
             services.AddScoped<IDynamoDBContext, DynamoDBContext>();
             services.AddScoped<IAmazonDynamoDB, AmazonDynamoDBClient>();
-            
-            
+
+
             //services and helpers
             services.AddTransient<DeviceService>();
             services.AddTransient<DeviceAuthZService>();
             services.AddTransient<UserAuthZService>();
+            services.AddTransient<MaintenanceService>();
+            services.AddTransient<MeasurementService>();
+
+            //swager
+            services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo { Title = "SMart AC Device API", Version = "v1" }));
 
             //controllers
             services.AddControllers();
@@ -83,6 +89,13 @@ namespace SmartACDeviceAPI
             app.UseAuthentication();
 
             app.UseAuthorization();
+
+            app.UseSwagger();
+
+app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    });
 
             app.UseEndpoints(endpoints =>
             {

@@ -1,265 +1,252 @@
 {
-    "x-generator": "NSwag v13.5.0.0 (NJsonSchema v10.1.15.0 (Newtonsoft.Json v10.0.0.0))",
-    "swagger": "2.0",
-    "info": {
-      "title": "My Title",
-      "version": "1.0.0"
-    },
-    "host": "localhost:5001",
-    "schemes": [
-      "https"
-    ],
-    "paths": {
-      "/authenticate": {
-        "post": {
-          "tags": [
-            "Authenticate"
-          ],
-          "operationId": "Authenticate_Authenticate",
-          "consumes": [
-            "application/json",
-            "text/json",
-            "application/*+json"
-          ],
-          "parameters": [
-            {
-              "name": "authorizationModel",
-              "in": "body",
-              "required": true,
-              "schema": {
-                "$ref": "#/definitions/AuthorizationModel"
-              },
-              "x-nullable": false
-            }
-          ],
-          "responses": {
-            "200": {
-              "x-nullable": true,
-              "description": "",
-              "schema": {
-                "type": "file"
-              }
+  "openapi": "3.0.1",
+  "info": {
+    "title": "SMart AC Device API",
+    "version": "v1"
+  },
+  "paths": {
+    "/devices/{serialNumber}": {
+      "get": {
+        "tags": [
+          "Device"
+        ],
+        "parameters": [
+          {
+            "name": "serialNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
-        }
-      },
-      "/devices/{serialNumber}": {
-        "get": {
-          "tags": [
-            "Device"
-          ],
-          "operationId": "Device_Get",
-          "parameters": [
-            {
-              "type": "string",
-              "name": "serialNumber",
-              "in": "path",
-              "required": true,
-              "x-nullable": true
-            }
-          ],
-          "responses": {
-            "200": {
-              "x-nullable": true,
-              "description": "",
-              "schema": {
-                "type": "file"
-              }
-            }
-          }
-        }
-      },
-      "/devices": {
-        "get": {
-          "tags": [
-            "Devices"
-          ],
-          "operationId": "Devices_Get",
-          "responses": {
-            "200": {
-              "x-nullable": true,
-              "description": "",
-              "schema": {
-                "type": "file"
-              }
-            }
-          }
-        },
-        "post": {
-          "tags": [
-            "Devices"
-          ],
-          "operationId": "Devices_Post",
-          "consumes": [
-            "application/json",
-            "text/json",
-            "application/*+json"
-          ],
-          "parameters": [
-            {
-              "name": "device",
-              "in": "body",
-              "required": true,
-              "schema": {
-                "$ref": "#/definitions/Device"
-              },
-              "x-nullable": false
-            }
-          ],
-          "responses": {
-            "200": {
-              "x-nullable": true,
-              "description": "",
-              "schema": {
-                "type": "file"
-              }
-            }
-          }
-        }
-      },
-      "/devices/{deviceId}/measurements/{from}/{to}": {
-        "get": {
-          "tags": [
-            "Measurement"
-          ],
-          "operationId": "Measurement_Get",
-          "parameters": [
-            {
-              "type": "string",
-              "name": "deviceId",
-              "in": "path",
-              "required": true,
-              "x-nullable": true
-            },
-            {
-              "type": "string",
-              "name": "from",
-              "in": "query",
-              "x-nullable": true
-            },
-            {
-              "type": "string",
-              "name": "to",
-              "in": "query",
-              "x-nullable": true
-            },
-            {
-              "type": "string",
-              "name": "from",
-              "in": "path",
-              "required": true,
-              "x-nullable": false
-            },
-            {
-              "type": "string",
-              "name": "to",
-              "in": "path",
-              "required": true,
-              "x-nullable": false
-            }
-          ],
-          "responses": {
-            "200": {
-              "x-nullable": true,
-              "description": "",
-              "schema": {
-                "type": "file"
-              }
-            }
-          }
-        },
-        "post": {
-          "tags": [
-            "Measurement"
-          ],
-          "operationId": "Measurement_Post",
-          "consumes": [
-            "application/json",
-            "text/json",
-            "application/*+json"
-          ],
-          "parameters": [
-            {
-              "type": "string",
-              "name": "deviceId",
-              "in": "path",
-              "required": true,
-              "x-nullable": true
-            },
-            {
-              "name": "measurements",
-              "in": "body",
-              "required": true,
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/Measurement"
-                }
-              },
-              "x-nullable": false
-            },
-            {
-              "type": "string",
-              "name": "from",
-              "in": "path",
-              "required": true,
-              "x-nullable": false
-            },
-            {
-              "type": "string",
-              "name": "to",
-              "in": "path",
-              "required": true,
-              "x-nullable": false
-            }
-          ],
-          "responses": {
-            "200": {
-              "x-nullable": true,
-              "description": "",
-              "schema": {
-                "type": "file"
-              }
-            }
-          }
-        }
-      },
-      "/authenticateuser": {
-        "post": {
-          "tags": [
-            "UserAuthenticate"
-          ],
-          "operationId": "UserAuthenticate_Authenticate",
-          "consumes": [
-            "application/json",
-            "text/json",
-            "application/*+json"
-          ],
-          "parameters": [
-            {
-              "name": "authorizationModel",
-              "in": "body",
-              "required": true,
-              "schema": {
-                "$ref": "#/definitions/UserAuthorizationModel"
-              },
-              "x-nullable": false
-            }
-          ],
-          "responses": {
-            "200": {
-              "x-nullable": true,
-              "description": "",
-              "schema": {
-                "type": "file"
-              }
-            }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
           }
         }
       }
     },
-    "definitions": {
-      "AuthorizationModel": {
+    "/authenticate-device": {
+      "post": {
+        "tags": [
+          "DeviceAuthZ"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceAuthenticationModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceAuthenticationModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceAuthenticationModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/devices": {
+      "get": {
+        "tags": [
+          "Devices"
+        ],
+        "parameters": [
+          {
+            "name": "count",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Devices"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Device"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Device"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Device"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/devices/{deviceId}/measurements/{from}/{to}": {
+      "get": {
+        "tags": [
+          "Measurement"
+        ],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Measurement"
+        ],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Measurements",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Measurement"
+              }
+            }
+          },
+          {
+            "name": "from",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/authenticate-user": {
+      "post": {
+        "tags": [
+          "UserAuth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserAuthenticationModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserAuthenticationModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserAuthenticationModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DeviceAuthenticationModel": {
+        "required": [
+          "secret",
+          "serialNumber"
+        ],
         "type": "object",
         "properties": {
           "serialNumber": {
@@ -268,13 +255,17 @@
           "secret": {
             "type": "string"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "Device": {
-        "type": "object",
         "required": [
-          "inAlarm"
+          "firmwareVersion",
+          "secret",
+          "serialNumber",
+          "status"
         ],
+        "type": "object",
         "properties": {
           "serialNumber": {
             "type": "string"
@@ -283,7 +274,8 @@
             "type": "string"
           },
           "registrationDate": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "firmwareVersion": {
             "type": "string"
@@ -294,21 +286,22 @@
           "inAlarm": {
             "type": "boolean"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "Measurement": {
-        "type": "object",
         "required": [
-          "airHumidity",
-          "carbonMonoxide",
-          "temperature"
+          "id",
+          "recordedTime"
         ],
+        "type": "object",
         "properties": {
           "id": {
             "type": "string"
           },
           "deviceSerialNumber": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "recordedTime": {
             "type": "string"
@@ -325,18 +318,23 @@
             "type": "number",
             "format": "double"
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "UserAuthorizationModel": {
+      "UserAuthenticationModel": {
         "type": "object",
         "properties": {
           "username": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "password": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       }
     }
   }
+}

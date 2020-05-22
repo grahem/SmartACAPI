@@ -6,8 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SmartACDeviceAPI.Maps;
 using SmartACDeviceAPI.Models;
+using SmartACDeviceAPI.Services;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -20,130 +23,54 @@ namespace SmartACDeviceAPI.Controllers
     [Route("devices/{deviceId}/measurements/{from?}/{to?}")]
     public class MeasurementController : ControllerBase
     {
-        //This class requires both a IDynamoDBContext and a AmazonDynamoDBClient
-        //since it requires working at a lower leve of the DynamoDB SDK when getting measurements
-        private readonly IDynamoDBContext _db;
-        private readonly AmazonDynamoDBClient _dbClient;
-        private readonly ILogger<MeasurementController> logger;
 
-        public MeasurementController(IDynamoDBContext db, ILogger<MeasurementController> logger)
+        private readonly MeasurementService _measurementService;
+        private readonly ILogger<MeasurementController> _logger;
+
+        public MeasurementController(MeasurementService measurementService, ILogger<MeasurementController> logger)
         {
-            this._db = db;
-            this._dbClient =  new AmazonDynamoDBClient();
-            this.logger = logger;   
+            _measurementService = measurementService;
+            _logger = logger;
         }
 
         [Authorize]
         [HttpGet]
         ///Gets at most last 200 measurements or measurements defined by queryParams from and to (ISO 8601)
-        public IActionResult Get(
+        public async Task<IActionResult> Get(
             [FromRoute(Name = "deviceId")] string deviceId,
             [FromQuery] MeasurementQueryModel queryModel)
         {
+            var watch = Stopwatch.StartNew();
+            _logger.LogDebug(String.Format("Getting Measurements for serial number: {0}", deviceId));
 
-            logger.LogInformation(String.Format("Getting Measurements for SerialNumber: {0}", deviceId));
+            var measurements = await _measurementService.GetMeasurements(deviceId, queryModel.FromDate, queryModel.ToDate);
 
-            bool includeTimeRange = false;
-            if (!String.IsNullOrEmpty(queryModel.FromDate))
-            {
-                includeTimeRange = true;
-                Console.WriteLine("Time range will be applied");
-            }
-
-            //Build DynamoDB qury expression. Logic for including search filter
-            string keyConditionExpression = "DeviceSerialNumber = :v_DeviceSerialNumber";
-            var expressionAttributeValues = new Dictionary<string, AttributeValue> {
-                    { ":v_DeviceSerialNumber", new AttributeValue { S = deviceId }  } 
-                };
-            if (includeTimeRange)
-            {
-                keyConditionExpression += " and RecordedTime between :v_start and :v_end";
-                expressionAttributeValues.Add(":v_start", new AttributeValue { S = queryModel.FromDate });
-                expressionAttributeValues.Add(":v_end", new AttributeValue { S = queryModel.ToDate });
-            }
-
-            var request = new QueryRequest
-            {
-                TableName = "Measurements",
-                IndexName = "DeviceSerialNumber-RecordedTime-index",
-                ReturnConsumedCapacity = "TOTAL",
-                KeyConditionExpression = keyConditionExpression, 
-                ExpressionAttributeValues = expressionAttributeValues
-            };
-            if (!includeTimeRange) { request.Limit = 200;}
-
-            var task = _dbClient.QueryAsync(request);
-            task.Wait();
-
-            //Populate a list of measurements from the DynamoDB query response
-            List<Measurement> measurements = DynamoMeasurementMapper.Map(task.Result.Items);
-            
-
-            logger.LogInformation(String.Format("Found {0} Measurements for SerialNumber: {1}", measurements.Count, deviceId));
+            watch.Stop();
+            _logger.LogInformation(string.Format("Found {0} Measurements for serial number {1} in {2}ms", measurements.Count, deviceId, watch.ElapsedMilliseconds));
 
             return Ok(measurements);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromRoute(Name = "deviceId")] string deviceId, List<Measurement> measurements)
+        public async Task<IActionResult> Post([FromRoute(Name = "deviceId")] string deviceId, [FromBody] PostMeasurementsModel measurements)
         {
-            logger.LogInformation(String.Format("Recording Measurements for SerialNumber: {0}", deviceId));
+            _logger.LogInformation(String.Format("Recording Measurements for SerialNumber: {0}", deviceId));
+
+            var watch = Stopwatch.StartNew();
 
             //check if maintanence mode
-            var sys = _db.LoadAsync<SystemConfig>("InMaintenance").Result;
-            if (sys.ConfigValue.Equals("true"))
-            {
+            if (await _measurementService.IsInMaintananceMode()) {
                 return new StatusCodeResult(503);
             }
 
-            if (measurements.Count == 0 || measurements.Count > 500)
+            var count = await _measurementService.RecordMeasurements(deviceId, measurements.Measurements);
+
+            if (count != measurements.Measurements.Count)
             {
-                return BadRequest();
+                return BadRequest(string.Format("Not all measurements recorded. Recorded {0} of (1)", count, measurements.Measurements.Count));
             }
 
-            //TODO: optomize for batch writes. latest DynamoDB sdk removed it?
-            foreach (var measurment in measurements)
-            {
-                if (String.IsNullOrEmpty(measurment.Id) || String.IsNullOrEmpty(measurment.RecordedTime))
-                {
-                    return BadRequest();
-                }
-                //if carbom monoxide is above 9PPM, trigger an alarm
-                if (measurment.CarbonMonoxide > 9)
-                {
-                    var query = _db.QueryAsync<Device>(deviceId);
-                    var resultList = query.GetRemainingAsync().Result;
-                    if (resultList.Count == 1)
-                    {
-                        Device device = resultList.First();
-                        //update device
-                        device.InAlarm = true;
-                        try
-                        {
-                            await _db.SaveAsync<Device>(device, default(System.Threading.CancellationToken));
-                        } catch (Exception ex)
-                        {
-                            //Don't allow a DDB failure stop from saving records
-                            logger.LogError(ex, "Error updating device alarm state");
-                        }
-                    }
-                }
-
-                //apply the serial number from the device in the URI
-                measurment.DeviceSerialNumber = deviceId;
-                
-                try
-                {
-                    await _db.SaveAsync<Measurement>(measurment, default(System.Threading.CancellationToken));
-                } catch (Exception ex)
-                {
-                    //TODO: handle failure and fork 400 vs 503 response.
-                    logger.LogError(ex, "Error occured saving measurements");
-                    return new StatusCodeResult(503);
-                }
-            }
-            
-            return Ok();
+            return Ok(count);
         }
 
     }

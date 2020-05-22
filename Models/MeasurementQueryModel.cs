@@ -20,10 +20,7 @@ namespace SmartACDeviceAPI
 
     public class MeasurementQueryModelValidator : ValidationAttribute
     {
-        public MeasurementQueryModelValidator()
-        {
-        }
-
+   
         protected override ValidationResult IsValid(object o, ValidationContext context)
         {
             Console.WriteLine(context.ObjectInstance.ToString());

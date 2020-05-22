@@ -8,7 +8,10 @@ namespace SmartACDeviceAPI.Maps {
     public class DynamoMeasurementMapper {
 
         public static List<Measurement> Map(List<Dictionary<string, AttributeValue>> items) {
-            var measurements= new List<Measurement>();
+            var measurements = new List<Measurement>();
+            
+            //DynamoDB responds with a list of dictionaries. It doesn't map to model objects, so we use reflection to do the mapping.
+            //Strings are easily mapped, while nubers require testing the value.
             foreach (Dictionary<string, AttributeValue> item in items)
             {
                 Measurement measurement = new Measurement();

@@ -1,4 +1,5 @@
-﻿using Amazon.DynamoDBv2.DataModel;
+﻿using System.ComponentModel.DataAnnotations;
+using Amazon.DynamoDBv2.DataModel;
 
 namespace SmartACDeviceAPI.Models
 {
@@ -7,12 +8,14 @@ namespace SmartACDeviceAPI.Models
     {
 
         [DynamoDBHashKey]
+        [Required]
         public string Id { get; set; }
 
         [DynamoDBRangeKey]
         public string DeviceSerialNumber { get; set; }
 
         [DynamoDBGlobalSecondaryIndexRangeKey]
+        [Required]
         public string RecordedTime { get; set; }
         
         [DynamoDBProperty]
