@@ -13,7 +13,9 @@ namespace SmartACDeviceAPI.Maps
 
         public static DeviceServiceResponse MapDevice(Device device)
         {
-            return MapDevices(new List<Device> { device })?.First();
+            if (device == null) 
+                return null;
+            return MapDevices(new List<Device> { device }).FirstOrDefault();
         }
 
         public static List<DeviceServiceResponse> MapDevices(List<Device> devices)

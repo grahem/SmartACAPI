@@ -62,7 +62,8 @@ namespace SmartACDeviceAPI
 
             //services and helpers
             services.AddTransient<DeviceService>();
-            services.AddTransient<DeviceAuthZService>();
+            services.AddTransient<IDeviceAuthZService, DeviceAuthZService>();
+            services.AddTransient<IUserAuthZService, UserAuthZService>();
             services.AddTransient<UserAuthZService>();
             services.AddTransient<MaintenanceService>();
             services.AddTransient<MeasurementService>();

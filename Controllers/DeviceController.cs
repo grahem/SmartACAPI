@@ -7,6 +7,7 @@ using SmartACDeviceAPI.Services;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SmartACDeviceAPI.Controllers
 {
@@ -31,7 +32,7 @@ namespace SmartACDeviceAPI.Controllers
         [Authorize]
         [HttpGet]
         ///Gets a Device with the given Id.
-        public IActionResult Get([FromRoute] string serialNumber)
+        public async Task<IActionResult> Get([FromRoute] string serialNumber)
         {
 
             if (string.IsNullOrEmpty(serialNumber))
@@ -41,11 +42,11 @@ namespace SmartACDeviceAPI.Controllers
 
             try
             {
-                var serviceResponse = _deviceSerive.GetDeviceBySerialNumber(serialNumber);
+                var serviceResponse = await _deviceSerive.GetDeviceBySerialNumber(serialNumber);
                 watch.Stop();
                 _logger.LogInformation(string.Format("Got Device for {0} in {1} ms", serialNumber, watch.ElapsedMilliseconds));
 
-                if (serviceResponse.Result == null)
+                if (serviceResponse == null)
                     return BadRequest();
             }
             catch (Exception ex)

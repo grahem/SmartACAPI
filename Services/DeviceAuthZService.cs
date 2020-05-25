@@ -11,7 +11,12 @@ using SmartACDeviceAPI.Exceptions;
 
 namespace SmartACDeviceAPI.Services
 {
-    public class DeviceAuthZService
+    public interface IDeviceAuthZService
+    {
+        Task<string> Authorize(string serialNumber, string secret);
+    }
+
+    public class DeviceAuthZService : IDeviceAuthZService
     {
         private readonly IDynamoDBContext _dBContext;
         private readonly IOptionsMonitor<AuthZOptions> _options;

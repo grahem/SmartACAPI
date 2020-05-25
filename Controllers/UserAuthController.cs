@@ -16,10 +16,10 @@ namespace SmartACDeviceAPI.Controllers
     [Route("authenticate-user")]
     public class UserAuthController : ControllerBase
     {
-        private readonly UserAuthZService _authServize;
-        private readonly ILogger<DevicesController> _logger;
+        private readonly IUserAuthZService _authServize;
+        private readonly ILogger<UserAuthController> _logger;
 
-        public UserAuthController(UserAuthZService authServize, ILogger<DevicesController> logger)
+        public UserAuthController(IUserAuthZService authServize, ILogger<UserAuthController> logger)
         {
             _authServize = authServize;
             _logger = logger;
@@ -44,6 +44,7 @@ namespace SmartACDeviceAPI.Controllers
             }
             catch (AuthZException)
             {
+                _logger.LogError(string.Format("Failed to retrieve token for user {0}", authModel.Username));
                 return Unauthorized();
             }
 

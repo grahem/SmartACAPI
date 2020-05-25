@@ -19,10 +19,10 @@ namespace SmartACDeviceAPI.Controllers
     [Route("authenticate-device")]
     public class DeviceAuthZController : ControllerBase
     {
-        private readonly DeviceAuthZService _deviceAuthZService;
+        private readonly IDeviceAuthZService _deviceAuthZService;
         private readonly ILogger<DeviceAuthZController> _logger;
 
-        public DeviceAuthZController(DeviceAuthZService deviceAuthZService, ILogger<DeviceAuthZController> logger)
+        public DeviceAuthZController(IDeviceAuthZService deviceAuthZService, ILogger<DeviceAuthZController> logger)
         {
             _deviceAuthZService = deviceAuthZService;
             _logger = logger;

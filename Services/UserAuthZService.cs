@@ -12,7 +12,12 @@ using SmartACDeviceAPI.Security;
 
 namespace SmartACDeviceAPI.Services
 {
-    public class UserAuthZService
+    public interface IUserAuthZService
+    {
+        Task<string> Authorize(string username, string password);
+    }
+
+    public class UserAuthZService : IUserAuthZService
     {
         private readonly IDynamoDBContext _dbContext;
 
@@ -56,7 +61,7 @@ namespace SmartACDeviceAPI.Services
         }
 
         private string HashPassword(string clearTextPassword)
-        {            
+        {
             string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
             password: clearTextPassword,
             salt: new byte[128 / 8],
