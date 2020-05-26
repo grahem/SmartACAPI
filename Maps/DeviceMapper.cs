@@ -15,6 +15,7 @@ namespace SmartACDeviceAPI.Maps
         {
             if (device == null) 
                 return null;
+                
             return MapDevices(new List<Device> { device }).FirstOrDefault();
         }
 
@@ -22,7 +23,7 @@ namespace SmartACDeviceAPI.Maps
         {
             List<DeviceServiceResponse> response = new List<DeviceServiceResponse>();
             if (devices == null || devices.Count == 0)
-                return response;
+                return null;
 
             var deviceTypeProps = typeof(Device).GetProperties()
             .Where(prop => prop.Name != nameof(Device.Secret))
