@@ -57,22 +57,27 @@ namespace SmartACDeviceAPI.Services
             var limit = count < 1 ? 1 : count > 200 ? 200 : count;
   
             var query = await _amazonDynamoDB.QueryAsync(BuildQueryRequest("unhealthy"));
-            var devices = DynamoDeviceMapper.Map(query.Items.Take(limit - query.Items.Count).ToList());
-
-            _logger.LogInformation(String.Format("Found {0} Unhealthy devices", devices.Count));
-
-            //If there are less than {count} unhealthy devices, 
-            //then pull the remainder of healthy ordered devices by registration date.
-            if (devices.Count < limit)
+            if (query != null)
             {
-                //re-write queryRequest to only include healthy devices
-                query = await _amazonDynamoDB.QueryAsync(BuildQueryRequest("healthy"));
-                
-                var healthyDevices = DynamoDeviceMapper.Map(query.Items.Take(limit - query.Items.Count).ToList());
-                devices.AddRange(healthyDevices);
-            }
+                var devices = DynamoDeviceMapper.Map(query.Items.Take(limit).ToList());
 
-            return DeviceMapper.MapDevices(devices);
+                _logger.LogInformation(String.Format("Found {0} Unhealthy devices", devices.Count));
+
+                //If there are less than {count} unhealthy devices, 
+                //then pull the remainder of healthy ordered devices by registration date.
+                if (devices.Count < limit)
+                {
+                    //re-write queryRequest to only include healthy devices
+                    query = await _amazonDynamoDB.QueryAsync(BuildQueryRequest("healthy"));
+                    
+                    var healthyDevices = DynamoDeviceMapper.Map(query.Items.Take(limit).ToList());
+                    devices.AddRange(healthyDevices);
+                }
+
+                return DeviceMapper.MapDevices(devices);
+            }
+            
+            return new List<DeviceServiceResponse>();
         }
 
         private QueryRequest BuildQueryRequest(string status) {

@@ -14,19 +14,21 @@ namespace SmartACDeviceAPI.Services
 
     public class MeasurementService : MaintenanceService
     {
-        private const int CARBON_MONOXIDE_ALARM_LEVEL = 9;
         private readonly IDynamoDBContext _dbContext;
         private readonly IAmazonDynamoDB _dbClient;
+
+        private readonly DeviceAlarmRecorder _alarmRecorder;
         private readonly ILogger<MeasurementService> _logger;
 
-        public MeasurementService(IDynamoDBContext dbContext, IAmazonDynamoDB dbClient, ILogger<MeasurementService> logger) : base(dbContext)
+        public MeasurementService(IDynamoDBContext dbContext, IAmazonDynamoDB dbClient, DeviceAlarmRecorder alarmRecorder, ILogger<MeasurementService> logger) : base(dbContext)
         {
             _dbContext = dbContext;
-            _dbClient = dbClient;
+            _dbClient = dbClient; 
+            _alarmRecorder = alarmRecorder;
             _logger = logger;
         }
 
-        public async Task<List<Measurement>> GetMeasurements(string serialNumber, string fromDate, string toDate)
+        public async Task<List<Measurement>> GetMeasurements(string serialNumber, string fromDate = null, string toDate = null)
         {
             bool includeTimeRange = !string.IsNullOrEmpty(fromDate) && !string.IsNullOrEmpty(toDate);
 
@@ -77,19 +79,21 @@ namespace SmartACDeviceAPI.Services
         {
 
             //if carbom monoxide is above 9PPM, trigger an alarm
-            RecordAlarms(measurements);
+            _alarmRecorder.RecordAlarms(serialNumber, measurements);
 
             //force apply the serial number from the device in the URI
             measurements.ForEach(m => m.DeviceSerialNumber = serialNumber);
 
             var batchWrite = _dbContext.CreateBatchWrite<Measurement>();
             int counter = 0;
-            for (int i = 0; i < measurements.Count; i += 25) {
-            
+
+            for (int i = 0; i < measurements.Count; i += 25)
+            {
+
                 int range = i + 25;
-                range = range > measurements.Count ? measurements.Count - i : 25; 
+                range = range > measurements.Count ? measurements.Count - i : 25;
                 batchWrite.AddPutItems(measurements.GetRange(i, range));
-            
+
                 try
                 {
                     await batchWrite.ExecuteAsync();
@@ -101,55 +105,10 @@ namespace SmartACDeviceAPI.Services
                     throw ex;
                 }
             }
-            
+
             return counter;
         }
 
-        private async void RecordAlarms(List<Measurement> measurements)
-        {
-            if (measurements is null)
-            {
-                throw new ArgumentNullException(nameof(measurements));
-            }
-
-            var devices = new List<Device>();
-
-            await Task.Run(() =>
-            {
-                measurements.ForEach(async measurement =>
-                {
-                    if (measurement.CarbonMonoxide > CARBON_MONOXIDE_ALARM_LEVEL
-                    && devices.FirstOrDefault(devices => devices.SerialNumber == measurement.DeviceSerialNumber) != null)
-                    {
-                        try
-                        {
-                            var device = await _dbContext.LoadAsync<Device>(measurement.DeviceSerialNumber);
-                            if (device != null)
-                                devices.Add(device);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error loading device");
-                        }
-                    }
-                });
-
-                devices.ForEach(async device =>
-                {
-                    //update device
-                    device.InAlarm = true;
-                    try
-                    {
-                        await _dbContext.SaveAsync<Device>(device, default(System.Threading.CancellationToken));
-                    }
-                    catch (Exception ex)
-                    {
-                        //Don't allow a DDB failure stop from saving records
-                        _logger.LogError(ex, "Error updating device alarm state");
-                    }
-                });
-
-            });
-        }
+        
     }
 }

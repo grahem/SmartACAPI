@@ -17,7 +17,8 @@ namespace SmartACDeviceAPI.Services
         public async Task<bool> IsInMaintananceMode()
         {
             var sys = await _dbContext.LoadAsync<SystemConfig>("InMaintenance");
-            return sys.ConfigValue.Equals("true");
+            return sys == null ? false : sys.ConfigValue.Equals("true");
+            
         }
     }
 }

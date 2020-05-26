@@ -46,8 +46,8 @@ namespace SmartACDeviceAPI.Controllers
                 watch.Stop();
                 _logger.LogInformation(string.Format("Got Device for {0} in {1} ms", serialNumber, watch.ElapsedMilliseconds));
 
-                if (serviceResponse == null)
-                    return BadRequest();
+                if (serviceResponse == null || string.IsNullOrEmpty(serviceResponse.SerialNumber))
+                    return NotFound();
             }
             catch (Exception ex)
             {
